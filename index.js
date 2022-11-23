@@ -24,7 +24,19 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Create Database to store Data
+    const productCollection = client.db("resale-go").collection("product");
     const brandCollection = client.db("resale-go").collection("brand");
+
+    app.get("/brand", async (req, res) => {
+        const brands = await brandCollection.find({}).limit(3).toArray();
+        res.send(brands);
+      });
+    app.get("/products", async (req, res) => {
+        const products = await brandCollection.find({}).toArray();
+        res.send(products);
+      });
+
+
   } finally {
     // await client.close();
   }
