@@ -26,6 +26,7 @@ async function run() {
     const productCollection = client.db("resale-go").collection("products");
     const brandCollection = client.db("resale-go").collection("brand");
     const userCollection = client.db("resale-go").collection("users");
+    const bookingsCollection = client.db("resale-go").collection("bookings");
 
     app.get("/brand", async (req, res) => {
       const brands = await brandCollection.find({}).limit(3).toArray();
@@ -50,6 +51,10 @@ async function run() {
 
     app.post("/users", async (req, res) => {
       const result = await userCollection.insertOne(req.body);
+      res.send(result);
+    });
+    app.post("/booking", async (req, res) => {
+      const result = await bookingsCollection.insertOne(req.body);
       res.send(result);
     });
 
