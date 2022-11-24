@@ -63,6 +63,17 @@ async function run() {
       res.send(result);
     });
 
+    //admin 
+    app.get("/allusers/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email };
+      const user = await userCollection.findOne(query);
+      res.send({ isAdmin: user?.role === "Admin" });
+    });
+
+    //get user
+    
+
   } finally {
     // await client.close();
   }
