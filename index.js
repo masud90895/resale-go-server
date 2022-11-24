@@ -53,8 +53,13 @@ async function run() {
       const result = await userCollection.insertOne(req.body);
       res.send(result);
     });
-    app.post("/booking", async (req, res) => {
+    app.post("/bookings", async (req, res) => {
       const result = await bookingsCollection.insertOne(req.body);
+      res.send(result);
+    });
+    app.get("/bookings", async (req, res) => {
+      const query = req.query.email;
+      const result = await bookingsCollection.find({ email: query }).toArray();
       res.send(result);
     });
 
