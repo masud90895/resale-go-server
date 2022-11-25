@@ -105,6 +105,19 @@ async function run() {
       res.send(result)
     })
 
+    app.get('/report',async (req, res)=>{
+      const result = await productCollection.find({report : true}).toArray()
+      res.send(result)
+    })
+
+    app.delete("/report/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await productCollection.deleteOne({ _id: ObjectId(id) });
+      if (result.deletedCount) {
+        res.send(result);
+      }
+    });
+
 
 //admin route end
 
