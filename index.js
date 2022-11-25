@@ -78,6 +78,20 @@ async function run() {
       res.send({ isAdmin: user?.role === "Admin" });
     });
 
+
+
+
+    // seller route
+    app.get("/allusers/seller/:email", async (req, res) => {
+      const email = req.params.email;
+
+      const query = { email };
+      const user = await userCollection.findOne(query);
+      res.send({ isSeller: user?.role === "Seller" });
+    });
+
+    // seller route end
+
     //get user
     app.get("/user", async (req, res) => {
       const email = req.query.email;
@@ -103,25 +117,22 @@ async function run() {
     //seller product delete
     app.delete("/dashboard/myProducts/:id", async (req, res) => {
       const id = req.params.id;
-      const result= await productCollection.deleteOne({_id:ObjectId(id)})
-      if(result.deletedCount){
-        res.send(result)
+      const result = await productCollection.deleteOne({ _id: ObjectId(id) });
+      if (result.deletedCount) {
+        res.send(result);
       }
-    })
+    });
 
     //product advertise
     app.post("/advertise", async (req, res) => {
       const result = await advertiseCollection.insertOne(req.body);
       res.send(result);
     });
-
-
-
-
-
-
-
-
+    app.get("/advertise", async (req, res) => {
+      const query= {}
+      const result = await advertiseCollection.find(query).toArray()
+      res.send(result);
+    });
 
   } finally {
     // await client.close();
