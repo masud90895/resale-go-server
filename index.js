@@ -78,13 +78,21 @@ async function run() {
       res.send({ isAdmin: user?.role === "Admin" });
     });
 
-    app.get("/allusers",async (req, res) => {
-      const users = await userCollection.find({}).toArray()
-      res.send(users)
+    app.get("/allSeller",async (req, res) => {
+      const seller = await userCollection.find({role : "Seller"}).toArray()
+      res.send(seller)
     })
 
+    app.delete("/allSeller/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await userCollection.deleteOne({ _id: ObjectId(id) });
+      if (result.deletedCount) {
+        res.send(result);
+      }
+    });
 
 
+//admin route end
 
     // seller route
     app.get("/allusers/seller/:email", async (req, res) => {
