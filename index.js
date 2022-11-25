@@ -27,6 +27,7 @@ async function run() {
     const brandCollection = client.db("resale-go").collection("brand");
     const userCollection = client.db("resale-go").collection("users");
     const bookingsCollection = client.db("resale-go").collection("bookings");
+    const advertiseCollection = client.db("resale-go").collection("advertise");
 
     app.get("/brand", async (req, res) => {
       const brands = await brandCollection.find({}).limit(3).toArray();
@@ -99,13 +100,20 @@ async function run() {
       res.send(result);
     });
 
-    app.delete("/dashboard/myProducts:id", async (req, res) => {
+    //seller product delete
+    app.delete("/dashboard/myProducts/:id", async (req, res) => {
       const id = req.params.id;
       const result= await productCollection.deleteOne({_id:ObjectId(id)})
       if(result.deletedCount){
         res.send(result)
       }
     })
+
+    //product advertise
+    app.post("/advertise", async (req, res) => {
+      const result = await advertiseCollection.insertOne(req.body);
+      res.send(result);
+    });
 
 
 
