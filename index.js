@@ -50,6 +50,11 @@ async function run() {
     });
 
     app.post("/users", async (req, res) => {
+      const isExists = await userCollection.findOne({ email: req.body.email });
+      if (isExists) {
+        return;
+      }
+
       const result = await userCollection.insertOne(req.body);
       res.send(result);
     });
@@ -63,10 +68,10 @@ async function run() {
       res.send(result);
     });
 
-    //admin 
+    //admin
     app.get("/allusers/admin/:email", async (req, res) => {
       const email = req.params.email;
-      
+
       const query = { email };
       const user = await userCollection.findOne(query);
       res.send({ isAdmin: user?.role === "Admin" });
@@ -81,11 +86,11 @@ async function run() {
     });
 
     // product post
-    app.post('/product',async (req,res)=>{
-      const data= req.body;
-      const result = await productCollection.insertOne(data)
-      res.send(result)
-    })
+    app.post("/product", async (req, res) => {
+      const data = req.body;
+      const result = await productCollection.insertOne(data);
+      res.send(result);
+    });
 
     //seller my product list
     app.get("/myProduct", async (req, res) => {
@@ -93,6 +98,21 @@ async function run() {
       const result = await productCollection.find({ email: query }).toArray();
       res.send(result);
     });
+
+    app.delete("/dashboard/myProducts:id", async (req, res) => {
+      const id = req.params.id;
+      const result= await productCollection.deleteOne({_id:ObjectId(id)})
+      if(result.deletedCount){
+        res.send(result)
+      }
+    })
+
+
+
+
+
+
+
 
 
   } finally {
