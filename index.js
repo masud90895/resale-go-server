@@ -82,6 +82,10 @@ async function run() {
       const seller = await userCollection.find({role : "Seller"}).toArray()
       res.send(seller)
     })
+    app.get("/allUser",async (req, res) => {
+      const buyer = await userCollection.find({role : "Buyer"}).toArray()
+      res.send(buyer)
+    })
 
     app.delete("/allSeller/:id", async (req, res) => {
       const id = req.params.id;
