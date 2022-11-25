@@ -69,7 +69,7 @@ async function run() {
       res.send(result);
     });
 
-    //admin
+    //admin route
     app.get("/allusers/admin/:email", async (req, res) => {
       const email = req.params.email;
 
@@ -77,6 +77,11 @@ async function run() {
       const user = await userCollection.findOne(query);
       res.send({ isAdmin: user?.role === "Admin" });
     });
+
+    app.get("/allusers",async (req, res) => {
+      const users = await userCollection.find({}).toArray()
+      res.send(users)
+    })
 
 
 
@@ -133,6 +138,12 @@ async function run() {
       const result = await advertiseCollection.find(query).toArray()
       res.send(result);
     });
+
+
+
+
+
+
 
   } finally {
     // await client.close();
