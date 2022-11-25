@@ -95,6 +95,16 @@ async function run() {
       }
     });
 
+    app.put("/report/:id", async (req, res) => {
+
+      const id= req.params.id;
+      /* const findProduct = await productCollection.findOne({_id : ObjectId(id)})
+      console.log(findProduct); */
+
+      const result= await productCollection.updateOne({_id: ObjectId(id) },{$set: {report : true}})
+      res.send(result)
+    })
+
 
 //admin route end
 
