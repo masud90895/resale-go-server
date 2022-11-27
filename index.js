@@ -10,6 +10,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 // backend to client data sent
 app.use(express.json());
+const jwt = require("jsonwebtoken");
 
 // payment
 const stripe = require("stripe")(process.env.PK);
@@ -22,6 +23,26 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+//jwt token start
+
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).send({ message: "unauthorized access" });
+  }
+  const token = authHeader.split(" ")[1];
+
+  jwt.verify(token, process.env.JWT_TOKEN, function (err, decoded) {
+    if (err) {
+      return res.status(403).send({ message: "Forbidden access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+}
+//jwt token end
+
 // Create a async function to all others activity
 async function run() {
   try {
@@ -32,6 +53,15 @@ async function run() {
     const bookingsCollection = client.db("resale-go").collection("bookings");
     const advertiseCollection = client.db("resale-go").collection("advertise");
     const paymentCollection = client.db("doctorsPortal").collection("payments");
+
+    // jwt token start
+
+    app.post("/jwt", (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.JWT_TOKEN, { expiresIn: "30d" });
+      res.send({ token });
+    });
+    // jwt token end
 
     app.get("/brand", async (req, res) => {
       const brands = await brandCollection.find({}).limit(3).toArray();
@@ -67,7 +97,7 @@ async function run() {
       const result = await bookingsCollection.insertOne(req.body);
       res.send(result);
     });
-    app.get("/bookings", async (req, res) => {
+    app.get("/bookings",verifyJWT, async (req, res) => {
       const query = req.query.email;
       const result = await bookingsCollection.find({ email: query }).toArray();
       res.send(result);
@@ -82,11 +112,11 @@ async function run() {
       res.send({ isAdmin: user?.role === "Admin" });
     });
 
-    app.get("/allSeller", async (req, res) => {
+    app.get("/allSeller",verifyJWT, async (req, res) => {
       const seller = await userCollection.find({ role: "Seller" }).toArray();
       res.send(seller);
     });
-    app.get("/allUser", async (req, res) => {
+    app.get("/allUser",verifyJWT, async (req, res) => {
       const buyer = await userCollection.find({ role: "Buyer" }).toArray();
       res.send(buyer);
     });
@@ -111,7 +141,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/report", async (req, res) => {
+    app.get("/report",verifyJWT, async (req, res) => {
       const result = await productCollection.find({ report: true }).toArray();
       res.send(result);
     });
@@ -149,8 +179,6 @@ async function run() {
       res.send({ isSeller: user?.role === "Seller" });
     });
 
-
-
     // user privet route
     app.get("/allusers/user/:email", async (req, res) => {
       const email = req.params.email;
@@ -178,7 +206,7 @@ async function run() {
     });
 
     //seller my product list
-    app.get("/myProduct", async (req, res) => {
+    app.get("/myProduct",verifyJWT, async (req, res) => {
       const query = req.query.email;
       const result = await productCollection.find({ email: query }).toArray();
       res.send(result);
@@ -211,72 +239,62 @@ async function run() {
       const result = await productCollection.find(query).toArray();
       res.send(result);
     });
-
-
-
     //payment
 
     app.get("/dashboard/payment/:id", async (req, res) => {
-      const id= req.params.id
-      const query = {_id : ObjectId(id)}
-      const data = await bookingsCollection.findOne(query)
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const data = await bookingsCollection.findOne(query);
       res.send(data);
     });
 
-    app.post('/create-payment-intent', async (req,res)=>{
-      const booking = req.body
-      const price = booking.price
+    app.post("/create-payment-intent", async (req, res) => {
+      const booking = req.body;
+      const price = booking.price;
       const amount = price * 100;
       console.log(amount);
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
         currency: "usd",
-        "payment_method_types" : [
-          "card"
-        ]
+        payment_method_types: ["card"],
       });
       res.send({
         clientSecret: paymentIntent.client_secret,
       });
-    })
-
-
-    app.post('/payments',async (req,res)=>{
-      const payment = req.body
-      const result = await paymentCollection.insertOne(payment)
-      const id = payment.bookingId
-      const filter = {_id : ObjectId(id)}
-      const updatedDoc ={
-        $set:{
-          paid :true,
-          transaction_id : payment.transaction_id
-        }
-      }
+    });
+    app.post("/payments", async (req, res) => {
+      const payment = req.body;
+      const result = await paymentCollection.insertOne(payment);
+      const id = payment.bookingId;
+      const filter = { _id: ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          paid: true,
+          transaction_id: payment.transaction_id,
+        },
+      };
 
       //product update
-      const productId={_id : ObjectId(payment?.productId)}
-      const updatedproduct ={
-        $set:{
-          paid :true,
-        }
-      }
+      const productId = { _id: ObjectId(payment?.productId) };
+      const updatedproduct = {
+        $set: {
+          paid: true,
+        },
+      };
       //product update end
 
-      const updateResult = await bookingsCollection.updateOne(filter, updatedDoc)
-      const updateProduct = await productCollection.updateOne(productId,updatedproduct)
-      res.send(result)
-    })
+      const updateResult = await bookingsCollection.updateOne(
+        filter,
+        updatedDoc
+      );
+      const updateProduct = await productCollection.updateOne(
+        productId,
+        updatedproduct
+      );
+      res.send(result);
+    });
 
     //payment end
-
-
-
-
-
-
-
-
-
   } finally {
     // await client.close();
   }
