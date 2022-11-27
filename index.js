@@ -164,6 +164,7 @@ async function run() {
     //get user
     app.get("/user", async (req, res) => {
       const email = req.query.email;
+      console.log(email);
       const query = { email };
       const user = await userCollection.findOne(query);
       res.send(user);
@@ -252,13 +253,21 @@ async function run() {
         }
       }
 
+      //product update
+      const productId={_id : ObjectId(payment?.productId)}
+      const updatedproduct ={
+        $set:{
+          paid :true,
+        }
+      }
+      //product update end
+
       const updateResult = await bookingsCollection.updateOne(filter, updatedDoc)
+      const updateProduct = await productCollection.updateOne(productId,updatedproduct)
       res.send(result)
     })
 
     //payment end
-
-
 
 
 
