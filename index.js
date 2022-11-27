@@ -149,6 +149,16 @@ async function run() {
       res.send({ isSeller: user?.role === "Seller" });
     });
 
+
+
+    // user privet route
+    app.get("/allusers/user/:email", async (req, res) => {
+      const email = req.params.email;
+
+      const query = { email };
+      const user = await userCollection.findOne(query);
+      res.send({ isBuyer: user?.role === "Buyer" });
+    });
     // seller route end
 
     //get user
